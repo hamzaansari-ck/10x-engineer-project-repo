@@ -1,167 +1,131 @@
 # PromptLab
 
-**Your AI Prompt Engineering Platform**
+A prompt engineering platform for AI teams to store, organise, and manage
+prompt templates. Think "Postman for Prompts."
 
----
+## Features
 
-## Welcome to the Team! 👋
+- CRUD operations for prompts with full and partial updates (PUT & PATCH)
+- Organise prompts into collections
+- Search prompts by title or description
+- Filter prompts by collection
+- Template variable support (`{{variable}}` syntax)
+- Automatic timestamp tracking
+- Cascade handling on collection deletion
 
-Congratulations on joining the PromptLab engineering team! You've been brought on to help us build the next generation of prompt engineering tools.
+## Prerequisites
 
-### What is PromptLab?
-
-PromptLab is an internal tool for AI engineers to **store, organize, and manage their prompts**. Think of it as a "Postman for Prompts" — a professional workspace where teams can:
-
-- 📝 Store prompt templates with variables (`{{input}}`, `{{context}}`)
-- 📁 Organize prompts into collections
-- 🏷️ Tag and search prompts
-- 📜 Track version history
-- 🧪 Test prompts with sample inputs
-
-### The Current Situation
-
-The previous developer left us with a *partially working* backend. The core structure is there, but:
-
-- There are **several bugs** that need fixing
-- Some **features are incomplete**
-- The **documentation is minimal** (you'll fix that)
-- There are **no tests** worth mentioning
-- **No CI/CD pipeline** exists
-- **No frontend** has been built yet
-
-Your job over the next 4 weeks is to transform this into a **production-ready, full-stack application**.
-
----
+- Python 3.10+
+- Node.js 18+ (for the frontend, Week 4)
+- Git
 
 ## Quick Start
 
-### Prerequisites
-
-- Python 3.10+
-- Node.js 18+ (for Week 4)
-- Git
-
-### Run Locally
-
 ```bash
-# Clone the repo
+# Clone and enter the project
 git clone <your-repo-url>
 cd promptlab
 
-# Set up backend
+# Install backend dependencies
 cd backend
 pip install -r requirements.txt
+
+# Start the API server
 python main.py
 ```
 
-API runs at: http://localhost:8000
+- API: http://localhost:8000
+- Swagger docs: http://localhost:8000/docs
 
-API docs at: http://localhost:8000/docs
-
-### Run Tests
+## Running Tests
 
 ```bash
 cd backend
 pytest tests/ -v
 ```
 
----
+With coverage:
+
+```bash
+pytest tests/ -v --cov=app --cov-report=term-missing
+```
 
 ## Project Structure
 
 ```
 promptlab/
-├── README.md                    # You are here
-├── PROJECT_BRIEF.md             # Your assignment details
-├── GRADING_RUBRIC.md            # How you'll be graded
-│
 ├── backend/
 │   ├── app/
-│   │   ├── __init__.py
-│   │   ├── api.py              # FastAPI routes (has bugs!)
-│   │   ├── models.py           # Pydantic models
-│   │   ├── storage.py          # In-memory storage
-│   │   └── utils.py            # Helper functions
+│   │   ├── __init__.py      # Package version
+│   │   ├── api.py           # FastAPI route handlers
+│   │   ├── models.py        # Pydantic data models
+│   │   ├── storage.py       # In-memory storage layer
+│   │   └── utils.py         # Sorting, filtering, search helpers
 │   ├── tests/
-│   │   ├── __init__.py
-│   │   ├── test_api.py         # Basic tests
-│   │   └── conftest.py         # Test fixtures
-│   ├── main.py                 # Entry point
+│   │   ├── conftest.py      # Shared fixtures
+│   │   └── test_api.py      # API endpoint tests
+│   ├── main.py              # Uvicorn entry point
 │   └── requirements.txt
-│
-├── frontend/                    # You'll create this in Week 4
-├── specs/                       # You'll create this in Week 2
-├── docs/                        # You'll create this in Week 2
-└── .github/                     # You'll set up CI/CD in Week 3
+├── docs/
+│   └── API_REFERENCE.md     # Full endpoint documentation
+├── specs/
+│   ├── prompt-versions.md   # Version history feature spec
+│   └── tagging-system.md    # Tagging feature spec
+├── frontend/                # React app (Week 4)
+├── .github/
+│   └── copilot-instructions.md  # AI coding agent config
+├── PROJECT_BRIEF.md
+├── GRADING_RUBRIC.md
+└── README.md
 ```
 
----
+## API Overview
 
-## Your Mission
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/health` | Health check |
+| GET | `/prompts` | List prompts (supports `?search=` and `?collection_id=`) |
+| GET | `/prompts/{id}` | Get a single prompt |
+| POST | `/prompts` | Create a prompt |
+| PUT | `/prompts/{id}` | Full update |
+| PATCH | `/prompts/{id}` | Partial update |
+| DELETE | `/prompts/{id}` | Delete a prompt |
+| GET | `/collections` | List collections |
+| GET | `/collections/{id}` | Get a single collection |
+| POST | `/collections` | Create a collection |
+| DELETE | `/collections/{id}` | Delete a collection (prompts are disassociated) |
 
-### 🧪 Experimentation Encouraged!
-While we provide guidelines, **you are the engineer**. If you see a better way to solve a problem using AI, do it!
-- Want to swap the storage layer for a real database? **Go for it.**
-- Want to add Authentication? **Do it.**
-- Want to rewrite the API in a different style? **As long as tests pass, you're clear.**
+See [docs/API_REFERENCE.md](docs/API_REFERENCE.md) for full request/response
+examples.
 
-The goal is to learn how to build *better* software *faster* with AI. Don't be afraid to break things and rebuild them better.
+## Development Setup
 
-### Week 1: Fix the Backend
-- Understand this codebase using AI
-- Find and fix the bugs
-- Implement missing features
-
-### Week 2: Document Everything
-- Write proper documentation
-- Create feature specifications
-- Set up coding standards
-
-### Week 3: Make it Production-Ready
-- Write comprehensive tests
-- Implement new features with TDD
-- Set up CI/CD and Docker
-
-### Week 4: Build the Frontend
-- Create a React frontend
-- Connect it to the backend
-- Polish the user experience
-
----
-
-## API Endpoints (Current)
-
-| Method | Endpoint | Description | Status |
-|--------|----------|-------------|--------|
-| GET | `/health` | Health check | ✅ Works |
-| GET | `/prompts` | List all prompts | ⚠️ Has issues |
-| GET | `/prompts/{id}` | Get single prompt | ❌ Bug |
-| POST | `/prompts` | Create prompt | ✅ Works |
-| PUT | `/prompts/{id}` | Update prompt | ⚠️ Has issues |
-| DELETE | `/prompts/{id}` | Delete prompt | ✅ Works |
-| GET | `/collections` | List collections | ✅ Works |
-| GET | `/collections/{id}` | Get collection | ✅ Works |
-| POST | `/collections` | Create collection | ✅ Works |
-| DELETE | `/collections/{id}` | Delete collection | ❌ Bug |
-
----
+1. Create a virtual environment:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate
+   ```
+2. Install dependencies:
+   ```bash
+   pip install -r backend/requirements.txt
+   ```
+3. Run the server with hot reload:
+   ```bash
+   cd backend
+   python main.py
+   ```
 
 ## Tech Stack
 
-- **Backend**: Python 3.10+, FastAPI, Pydantic
-- **Frontend**: React, Vite (Week 4)
-- **Testing**: pytest
-- **DevOps**: Docker, GitHub Actions (Week 3)
+- Python 3.10+, FastAPI, Pydantic v2
+- pytest for testing
+- React + Vite (frontend, coming in Week 4)
+- Docker & GitHub Actions (CI/CD, coming in Week 3)
 
----
+## Contributing
 
-## Need Help?
-
-1. **Use AI tools** — This is an AI-assisted coding course!
-2. Read the `PROJECT_BRIEF.md` for detailed instructions
-3. Check `GRADING_RUBRIC.md` to understand expectations
-4. Ask questions in the course forum
-
----
-
-Good luck, and welcome to the team! 🚀
+1. Create a feature branch from `main`.
+2. Write tests for any new functionality.
+3. Ensure all tests pass and coverage stays above 80%.
+4. Use conventional commit messages (`feat:`, `fix:`, `docs:`, `test:`).
+5. Open a pull request for review.
