@@ -106,3 +106,48 @@ def extract_variables(content: str) -> List[str]:
     """
     pattern = r'\{\{(\w+)\}\}'
     return re.findall(pattern, content)
+
+
+
+def normalise_tags(tags: List[str]) -> List[str]:
+    """Normalise a list of tags: lowercase, strip whitespace, deduplicate.
+
+    Preserves the order of first occurrence.
+
+    Args:
+        tags: Raw tag strings from user input.
+
+    Returns:
+        A deduplicated list of cleaned tag strings.
+
+    Example:
+        >>> normalise_tags(["Python", " AI ", "python"])
+        ['python', 'ai']
+    """
+    seen: set = set()
+    result: List[str] = []
+    for tag in tags:
+        cleaned = tag.strip().lower()
+        if cleaned and cleaned not in seen:
+            seen.add(cleaned)
+            result.append(cleaned)
+    return result
+
+
+def filter_prompts_by_tags(prompts: List[Prompt], tags: List[str]) -> List[Prompt]:
+    """Filter prompts that contain all specified tags (AND logic).
+
+    Args:
+        prompts: The list of prompts to filter.
+        tags: Tag strings to require. An empty list matches everything.
+
+    Returns:
+        Prompts that have every tag in ``tags``.
+
+    Example:
+        >>> filter_prompts_by_tags(prompts, ["python", "ai"])
+    """
+    if not tags:
+        return prompts
+    tag_set = set(t.lower() for t in tags)
+    return [p for p in prompts if tag_set.issubset(set(p.tags))]

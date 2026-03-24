@@ -5,18 +5,22 @@ CRUD operations for prompts and collections, health checks, and query
 filtering/sorting capabilities.
 """
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from typing import Optional
+from typing import List, Optional
 
 from app.models import (
     Prompt, PromptCreate, PromptUpdate, PromptPatch,
     Collection, CollectionCreate,
     PromptList, CollectionList, HealthResponse,
+    TagList, TagCount,
     get_current_time
 )
 from app.storage import storage
-from app.utils import sort_prompts_by_date, filter_prompts_by_collection, search_prompts
+from app.utils import (
+    sort_prompts_by_date, filter_prompts_by_collection,
+    search_prompts, normalise_tags, filter_prompts_by_tags,
+)
 from app import __version__
 
 
@@ -53,7 +57,8 @@ def health_check():
 @app.get("/prompts", response_model=PromptList)
 def list_prompts(
     collection_id: Optional[str] = None,
-    search: Optional[str] = None
+    search: Optional[str] = None,
+    tag: Optional[List[str]] = Query(None)
 ):
     """List all prompts with optional filtering and search.
 
@@ -61,6 +66,7 @@ def list_prompts(
         collection_id: If provided, only return prompts belonging to this collection.
         search: If provided, filter prompts whose title or description contains
             this substring (case-insensitive).
+        tag: If provided, only return prompts that have all specified tags (AND logic).
 
     Returns:
         PromptList containing the matching prompts sorted newest-first and a total count.
@@ -72,6 +78,9 @@ def list_prompts(
 
     if search:
         prompts = search_prompts(prompts, search)
+
+    if tag:
+        prompts = filter_prompts_by_tags(prompts, tag)
 
     prompts = sort_prompts_by_date(prompts, descending=True)
 
@@ -116,7 +125,9 @@ def create_prompt(prompt_data: PromptCreate):
         if not collection:
             raise HTTPException(status_code=400, detail="Collection not found")
 
-    prompt = Prompt(**prompt_data.model_dump())
+    data = prompt_data.model_dump()
+    data["tags"] = normalise_tags(data.get("tags", []))
+    prompt = Prompt(**data)
     return storage.create_prompt(prompt)
 
 
@@ -153,6 +164,7 @@ def update_prompt(prompt_id: str, prompt_data: PromptUpdate):
         content=prompt_data.content,
         description=prompt_data.description,
         collection_id=prompt_data.collection_id,
+        tags=normalise_tags(prompt_data.tags),
         created_at=existing.created_at,
         updated_at=get_current_time()
     )
@@ -189,6 +201,9 @@ def patch_prompt(prompt_id: str, prompt_data: PromptPatch):
         collection = storage.get_collection(update_fields["collection_id"])
         if not collection:
             raise HTTPException(status_code=400, detail="Collection not found")
+
+    if "tags" in update_fields:
+        update_fields["tags"] = normalise_tags(update_fields["tags"] or [])
 
     updated_prompt = existing.model_copy(update=update_fields)
     updated_prompt.updated_at = get_current_time()
@@ -286,3 +301,23 @@ def delete_collection(collection_id: str):
         storage.update_prompt(prompt.id, prompt)
 
     return None
+
+
+
+# ============== Tag Endpoints ==============
+
+@app.get("/tags", response_model=TagList)
+def list_tags():
+    """List all unique tags with usage counts, sorted by count descending.
+
+    Returns:
+        TagList containing tag names and their prompt counts.
+    """
+    from collections import Counter
+
+    counter: Counter = Counter()
+    for prompt in storage.get_all_prompts():
+        counter.update(prompt.tags)
+
+    tags = [TagCount(name=name, count=count) for name, count in counter.most_common()]
+    return TagList(tags=tags)

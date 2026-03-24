@@ -49,12 +49,14 @@ class PromptBase(BaseModel):
         content: The prompt template body. Supports ``{{variable}}`` placeholders.
         description: An optional short description (max 500 chars).
         collection_id: Optional ID linking this prompt to a collection.
+        tags: List of tag labels attached to this prompt.
     """
 
     title: str = Field(..., min_length=1, max_length=200)
     content: str = Field(..., min_length=1)
     description: Optional[str] = Field(None, max_length=500)
     collection_id: Optional[str] = None
+    tags: List[str] = Field(default_factory=list)
 
 
 class PromptCreate(PromptBase):
@@ -94,6 +96,7 @@ class PromptPatch(BaseModel):
     content: Optional[str] = Field(None, min_length=1)
     description: Optional[str] = Field(None, max_length=500)
     collection_id: Optional[str] = None
+    tags: Optional[List[str]] = None
 
 
 class Prompt(PromptBase):
@@ -193,3 +196,25 @@ class HealthResponse(BaseModel):
 
     status: str
     version: str
+
+
+class TagCount(BaseModel):
+    """A single tag with its usage count.
+
+    Attributes:
+        name: The normalised tag string.
+        count: Number of prompts using this tag.
+    """
+
+    name: str
+    count: int
+
+
+class TagList(BaseModel):
+    """Response model for the tags endpoint.
+
+    Attributes:
+        tags: List of TagCount objects sorted by count descending.
+    """
+
+    tags: List[TagCount]
