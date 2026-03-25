@@ -7,16 +7,19 @@ prompt templates. Think "Postman for Prompts."
 
 - CRUD operations for prompts with full and partial updates (PUT & PATCH)
 - Organise prompts into collections
+- Tagging system with normalisation and filtering
 - Search prompts by title or description
-- Filter prompts by collection
+- Filter prompts by collection or tags
 - Template variable support (`{{variable}}` syntax)
 - Automatic timestamp tracking
 - Cascade handling on collection deletion
+- React frontend with responsive design
+- Full-stack CRUD: create, edit, delete prompts and collections from the UI
 
 ## Prerequisites
 
 - Python 3.10+
-- Node.js 18+ (for the frontend, Week 4)
+- Node.js 18+ and npm
 - Git
 
 ## Quick Start
@@ -26,16 +29,28 @@ prompt templates. Think "Postman for Prompts."
 git clone <your-repo-url>
 cd promptlab
 
-# Install backend dependencies
+# --- Backend ---
 cd backend
 pip install -r requirements.txt
-
-# Start the API server
 python main.py
+# API: http://localhost:8000
+# Swagger docs: http://localhost:8000/docs
+
+# --- Frontend (new terminal) ---
+cd frontend
+npm install
+npm run dev
+# UI: http://localhost:5173
 ```
 
-- API: http://localhost:8000
-- Swagger docs: http://localhost:8000/docs
+### Using Docker
+
+```bash
+docker-compose up --build
+```
+
+- Backend: http://localhost:8000
+- Frontend: http://localhost:5173
 
 ## Running Tests
 
@@ -63,17 +78,31 @@ promptlab/
 │   │   └── utils.py         # Sorting, filtering, search helpers
 │   ├── tests/
 │   │   ├── conftest.py      # Shared fixtures
-│   │   └── test_api.py      # API endpoint tests
+│   │   ├── test_api.py      # API endpoint tests
+│   │   ├── test_models.py   # Model validation tests
+│   │   ├── test_storage.py  # Storage layer tests
+│   │   └── test_utils.py    # Utility function tests
 │   ├── main.py              # Uvicorn entry point
+│   ├── Dockerfile
 │   └── requirements.txt
+├── frontend/
+│   ├── src/
+│   │   ├── api/             # API client layer
+│   │   ├── components/      # React components
+│   │   ├── App.jsx          # Main application
+│   │   ├── index.css        # Global styles
+│   │   └── main.jsx         # Entry point
+│   ├── package.json
+│   └── vite.config.js
 ├── docs/
 │   └── API_REFERENCE.md     # Full endpoint documentation
 ├── specs/
 │   ├── prompt-versions.md   # Version history feature spec
 │   └── tagging-system.md    # Tagging feature spec
-├── frontend/                # React app (Week 4)
 ├── .github/
+│   ├── workflows/ci.yml     # GitHub Actions CI pipeline
 │   └── copilot-instructions.md  # AI coding agent config
+├── docker-compose.yml
 ├── PROJECT_BRIEF.md
 ├── GRADING_RUBRIC.md
 └── README.md
@@ -84,7 +113,8 @@ promptlab/
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/health` | Health check |
-| GET | `/prompts` | List prompts (supports `?search=` and `?collection_id=`) |
+| GET | `/tags` | List all tags with counts |
+| GET | `/prompts` | List prompts (supports `?search=`, `?collection_id=`, `?tag=`) |
 | GET | `/prompts/{id}` | Get a single prompt |
 | POST | `/prompts` | Create a prompt |
 | PUT | `/prompts/{id}` | Full update |
@@ -99,6 +129,8 @@ See [docs/API_REFERENCE.md](docs/API_REFERENCE.md) for full request/response
 examples.
 
 ## Development Setup
+
+### Backend
 
 1. Create a virtual environment:
    ```bash
@@ -115,12 +147,30 @@ examples.
    python main.py
    ```
 
+### Frontend
+
+1. Install dependencies:
+   ```bash
+   cd frontend
+   npm install
+   ```
+2. Start the dev server:
+   ```bash
+   npm run dev
+   ```
+3. Build for production:
+   ```bash
+   npm run build
+   ```
+
+The Vite dev server proxies `/api` requests to the backend at `http://localhost:8000`.
+
 ## Tech Stack
 
 - Python 3.10+, FastAPI, Pydantic v2
-- pytest for testing
-- React + Vite (frontend, coming in Week 4)
-- Docker & GitHub Actions (CI/CD, coming in Week 3)
+- pytest (113 tests, 100% coverage)
+- React 18 + Vite 5
+- Docker & GitHub Actions CI/CD
 
 ## Contributing
 
